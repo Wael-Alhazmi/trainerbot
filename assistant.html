@@ -12,7 +12,6 @@
     padding: 0;
     text-align: right;
     transition: 0.3s ease;
-    direction: rtl;
   }
 
   body.dark {
@@ -20,42 +19,40 @@
     color: white;
   }
 
-  /* ---------------------- */
-  /* زرّان أعلى الصفحة      */
-  /* ---------------------- */
-  .top-fixed-controls {
-    position: absolute;
-    top: 12px;
+  /* ------- أزرار التحكم العائمة (تعمل على Chrome + Google Sites) ------- */
+  #floating-controls {
+    position: fixed;
+    top: 18px;
     right: 20px;
     display: flex;
-    gap: 10px;
-    z-index: 9999;
+    gap: 12px;
+    z-index: 999999999 !important;
   }
 
   .round-btn {
-    width: 44px;
-    height: 44px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
-    border: none;
     background: #0A7A42;
-    color: white;
-    font-size: 20px;
+    border: none;
     cursor: pointer;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    color: white;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.25);
   }
 
   .mute-btn {
     background: #333;
   }
 
-  /* ---------------------- */
-  /* واجهة المحادثة         */
-  /* ---------------------- */
   .header {
     background: #0A7A42;
     color: white;
     text-align: center;
-    padding: 25px 10px;
+    padding: 20px 10px;
     font-size: 26px;
     font-weight: bold;
   }
@@ -63,13 +60,15 @@
   .sub-title {
     text-align: center;
     color: #0A7A42;
-    margin-top: 10px;
+    margin-top: 8px;
     font-size: 18px;
+    margin-bottom: 10px;
   }
 
+  /* صندوق الدردشة */
   #chat-box {
     width: 80%;
-    margin: 20px auto;
+    margin: auto;
     background: white;
     border-radius: 15px;
     padding: 20px;
@@ -95,16 +94,15 @@
     border: none;
     cursor: pointer;
     font-size: 13px;
+    z-index: 5;
   }
 
-  /* ---------------------- */
-  /* فقاعات الرسائل        */
-  /* ---------------------- */
+  /* فقاعات الرسائل */
   .msg {
     display: flex;
     gap: 10px;
     margin: 15px 0;
-    align-items: flex-end;
+    align-items: flex-start;
     animation: fadeIn 0.3s ease-in-out;
   }
 
@@ -118,10 +116,7 @@
     padding: 14px;
     border-radius: 14px;
     line-height: 1.8;
-    direction: rtl;
-    text-align: right;
     word-break: break-word;
-    white-space: pre-line;
     box-shadow: 0px 3px 6px rgba(0,0,0,0.1);
   }
 
@@ -137,12 +132,10 @@
 
   body.dark .msg-user {
     background: #0A7A42;
-    color: white;
   }
 
   body.dark .msg-bot {
     background: #3b3b3b;
-    color: white;
   }
 
   .icon {
@@ -151,9 +144,6 @@
     border-radius: 50%;
   }
 
-  /* ---------------------- */
-  /* منطقة الإدخال          */
-  /* ---------------------- */
   .input-area {
     width: 80%;
     margin: 15px auto;
@@ -177,17 +167,16 @@
     border-radius: 10px;
     cursor: pointer;
     font-size: 15px;
-    font-weight: bold;
   }
 </style>
 
 </head>
 <body>
 
-<!-- ⭐ أزرار أعلى الصفحة -->
-<div class="top-fixed-controls">
-  <button class="round-btn" onclick="toggleDark()">🌙</button>
-  <button class="round-btn mute-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
+<!-- ⭐ الأزرار العائمة أعلى الصفحة -->
+<div id="floating-controls">
+    <button class="round-btn" onclick="toggleDark()">🌙</button>
+    <button class="round-btn mute-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
 </div>
 
 <div class="header">أكاديمية المتدرب</div>
@@ -197,4 +186,54 @@
   <button class="clear-btn" onclick="clearChat()">مسح</button>
 
   <div class="msg">
-    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png" class=
+    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png" class="icon">
+    <div class="msg-bot">جاهز لمساعدتك بإجابات قصيرة وواضحة.</div>
+  </div>
+</div>
+
+<div class="input-area">
+  <input id="userInput" type="text" placeholder="اكتب رسالتك ثم اضغط Enter أو إرسال">
+  <button onclick="sendMessage()">إرسال</button>
+</div>
+
+<script>
+/* ---------- إعداد الصوت ---------- */
+let soundEnabled = localStorage.getItem("sound") !== "off";
+
+function toggleMute() {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem("sound", soundEnabled ? "on" : "off");
+  document.getElementById("muteBtn").innerHTML = soundEnabled ? "🔊" : "🔇";
+  if (!soundEnabled) window.speechSynthesis.cancel();
+}
+
+function speakText(text) {
+  if (!soundEnabled) return;
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "ar";
+  msg.rate = 1;
+  window.speechSynthesis.speak(msg);
+}
+
+/* ---------- الوضع الليلي ---------- */
+function toggleDark() {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+}
+
+window.onload = () => {
+  if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
+  document.getElementById("muteBtn").innerHTML = soundEnabled ? "🔊" : "🔇";
+};
+
+/* ---------- إرسال الرسالة ---------- */
+document.getElementById("userInput").addEventListener("keypress", function(e){
+  if(e.key === "Enter") sendMessage();
+});
+
+async function sendMessage() {
+  const input = document.getElementById("userInput");
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const cha
