@@ -77,27 +77,39 @@
   .msg {
     display: flex;
     gap: 10px;
-    margin: 12px 0;
+    margin: 15px 0;
     align-items: flex-start;
   }
 
+  /* رسالة المستخدم */
   .msg-user {
     background: #CFF5DD;
     padding: 12px;
     border-radius: 12px;
     max-width: 70%;
     font-weight: 500;
+    direction: rtl;
+    text-align: right;
+    line-height: 1.8;
+    word-break: break-word;
+    white-space: pre-line;
   }
 
   body.dark .msg-user {
-    background: #035c32;
+    background: #076b3a;
   }
 
+  /* رسالة البوت */
   .msg-bot {
     background: #efefef;
     padding: 12px;
     border-radius: 12px;
     max-width: 70%;
+    direction: rtl;
+    text-align: right;
+    line-height: 1.8;
+    word-break: break-word;
+    white-space: pre-line;
   }
 
   body.dark .msg-bot {
@@ -152,7 +164,7 @@
   .dark-toggle {
     background: #333;
     color: white;
-    padding: 6px 14px;
+    padding: 8px 16px;
     border-radius: 10px;
     border: none;
     position: fixed;
@@ -201,7 +213,6 @@ async function sendMessage() {
   `;
 
   input.value = "";
-
   chat.scrollTop = chat.scrollHeight;
 
   try {
