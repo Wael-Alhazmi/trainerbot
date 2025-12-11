@@ -66,7 +66,7 @@
     font-size: 13px;
   }
 
-  /* فقاعات رسائل حديثة */
+  /* فقاعات الرسائل */
   .msg {
     display: flex;
     gap: 10px;
@@ -142,28 +142,35 @@
     font-weight: bold;
   }
 
-  /* زر الوضع الليلي */
-  .dark-toggle {
-    background: #333;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 10px;
+  /* ⚡ أزرار دائرية أعلى يمين الصفحة */
+  .top-controls {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
-    cursor: pointer;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 12px;
+    z-index: 9999;
   }
 
-  /* زر الصوت */
-  .mute-toggle {
-    background: #555;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 10px;
-    position: fixed;
-    bottom: 20px;
-    left: 140px;
+  .round-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    font-size: 22px;
     cursor: pointer;
+    background: #0A7A42;
+    color: white;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    transition: 0.2s;
+  }
+
+  .round-btn:hover {
+    transform: scale(1.1);
+  }
+
+  .mute-btn {
+    background: #555;
   }
 </style>
 
@@ -172,6 +179,12 @@
 
 <div class="header">أكاديمية المتدرب</div>
 <div class="sub-title">المدرب الرقمي – محادثة تفاعلية</div>
+
+<!-- ⭐ أزرار الوضع الليلي والصوت -->
+<div class="top-controls">
+    <button class="round-btn" onclick="toggleDark()">🌙</button>
+    <button class="round-btn mute-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
+</div>
 
 <div id="chat-box">
   <button class="clear-btn" onclick="clearChat()">مسح</button>
@@ -187,60 +200,52 @@
   <button onclick="sendMessage()">إرسال</button>
 </div>
 
-<button class="dark-toggle" onclick="toggleDark()">🌙 الوضع الليلي</button>
-<button class="mute-toggle" onclick="toggleMute()">🔊 الصوت</button>
-
 <script>
 
-/* ========================= */
-/*   تشغيل/إيقاف الصوت       */
-/* ========================= */
+/* 🌟 تشغيل/إيقاف الصوت */
 let soundEnabled = localStorage.getItem("sound") !== "off";
 
 function toggleMute() {
   soundEnabled = !soundEnabled;
+  const btn = document.getElementById("muteBtn");
+
   if (soundEnabled) {
     localStorage.setItem("sound", "on");
-    document.querySelector(".mute-toggle").innerHTML = "🔊 الصوت";
+    btn.textContent = "🔊";
   } else {
     localStorage.setItem("sound", "off");
-    document.querySelector(".mute-toggle").innerHTML = "🔇 صامت";
+    btn.textContent = "🔇";
     window.speechSynthesis.cancel();
   }
 }
 
-/* تحضير الزر عند فتح الصفحة */
-window.onload = () => {
-  if (localStorage.getItem("theme") === "dark") {
-    document.body.classList.add("dark");
-  }
-
-  document.querySelector(".mute-toggle").innerHTML =
-    soundEnabled ? "🔊 الصوت" : "🔇 صامت";
-};
-
 /* صوت الرد */
 function speakText(text) {
   if (!soundEnabled) return;
-  const msg = new SpeechSynthesisUtterance();
-  msg.text = text;
+  const msg = new SpeechSynthesisUtterance(text);
   msg.lang = "ar";
   msg.rate = 1;
   window.speechSynthesis.speak(msg);
 }
 
-/* ========================= */
-/*     إرسال الرسالة عبر Enter */
-/* ========================= */
+/* إعداد الأزرار عند التحميل */
+window.onload = () => {
+  document.getElementById("muteBtn").textContent =
+    soundEnabled ? "🔊" : "🔇";
+
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+};
+
+/* إرسال عبر Enter */
 document.getElementById("userInput").addEventListener("keypress", function(event){
   if(event.key === "Enter"){
     sendMessage();
   }
 });
 
-/* ========================= */
-/*         إرسال الطلب       */
-/* ========================= */
+/* إرسال الرسالة */
 async function sendMessage() {
   const input = document.getElementById("userInput");
   const msg = input.value.trim();
@@ -248,7 +253,6 @@ async function sendMessage() {
 
   const chat = document.getElementById("chat-box");
 
-  /* عرض رسالة المستخدم */
   chat.innerHTML += `
     <div class="msg" style="justify-content: flex-end;">
       <div class="msg-user">${msg}</div>
@@ -266,13 +270,10 @@ async function sendMessage() {
       body: JSON.stringify({
         message: `
 أنت مساعد تعليمي متخصص في البرمجة ومايكروسوفت والفوتوشوب.
-
-قواعد الرد:
-- الرد لا يزيد عن 10 كلمات فقط.
-- بدون ترحيب أو مقدمات.
-- أسلوب مختصر وواضح يشبه أكاديمية المتدرب.
+- الرد لا يزيد عن 10 كلمات.
+- بدون مقدمات أو ترحيب.
+- أسلوب أكاديمية المتدرب.
 - إذا كان السؤال خارج التخصص: قل "أساعد فقط في البرمجة ومايكروسوفت والفوتوشوب."
-
 السؤال: ${msg}
         `
       })
@@ -281,7 +282,6 @@ async function sendMessage() {
     const data = await response.json();
     const botReply = data.reply;
 
-    /* عرض الرد */
     chat.innerHTML += `
       <div class="msg">
         <img src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png" class="icon">
@@ -289,7 +289,6 @@ async function sendMessage() {
       </div>
     `;
 
-    /* تشغيل الصوت */
     speakText(botReply);
 
   } catch (e) {
@@ -304,24 +303,21 @@ async function sendMessage() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-/* ========================= */
-/*        مسح المحادثة       */
-/* ========================= */
+/* مسح المحادثة */
 function clearChat() {
   document.getElementById("chat-box").innerHTML = `
     <button class="clear-btn" onclick="clearChat()">مسح</button>
   `;
 }
 
-/* ========================= */
-/*       الوضع الليلي        */
-/* ========================= */
+/* الوضع الليلي */
 function toggleDark() {
   document.body.classList.toggle("dark");
   localStorage.setItem("theme",
     document.body.classList.contains("dark") ? "dark" : "light"
   );
 }
+
 </script>
 
 </body>
