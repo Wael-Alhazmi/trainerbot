@@ -2,13 +2,20 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>المدرب الرقمي – صوتي</title>
+<title>المدرب الرقمي – أكاديمية المتدرب</title>
 
 <style>
   body {
     font-family: "Tajawal", sans-serif;
     background: #F6F9F7;
-    margin: 0; padding: 0;
+    margin: 0;
+    padding: 0;
+    transition: 0.3s;
+  }
+
+  body.dark {
+    background: #1a1a1a;
+    color: white;
   }
 
   .header {
@@ -17,25 +24,66 @@
     padding: 18px;
     font-size: 24px;
     text-align: center;
+    font-weight: bold;
+  }
+
+  #floating-controls {
+    position: fixed;
+    top: 18px;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+    z-index: 999999;
+  }
+
+  .round-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    background: #0A7A42;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  }
+
+  .mute-btn {
+    background: #333;
+  }
+
+  #voiceBtn {
+    background: #FFD000;
   }
 
   #chat-box {
     width: 90%;
-    margin: 20px auto;
+    margin: 80px auto 20px auto;
     background: white;
-    border-radius: 10px;
+    border-radius: 14px;
     padding: 15px;
-    height: 430px;
+    height: 460px;
     border: 2px solid #CFF5DD;
     overflow-y: auto;
   }
 
+  body.dark #chat-box {
+    background: #2b2b2b;
+    border-color: #555;
+  }
+
   .msg {
     margin: 12px 0;
-    padding: 10px 14px;
-    border-radius: 12px;
+    padding: 12px 16px;
+    border-radius: 14px;
     max-width: 70%;
     line-height: 1.8;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(10px);}
+    to {opacity: 1; transform: translateY(0);}
   }
 
   .user-msg {
@@ -45,6 +93,15 @@
 
   .bot-msg {
     background: #eee;
+  }
+
+  body.dark .user-msg {
+    background: #0A7A42;
+    color: white;
+  }
+
+  body.dark .bot-msg {
+    background: #3a3a3a;
   }
 
   .controls {
@@ -57,48 +114,138 @@
   input {
     flex: 1;
     padding: 12px;
-    border: 1px solid #aaa;
     border-radius: 10px;
+    border: 1px solid #aaa;
   }
 
-  button {
+  input.dark {
+    background: #333;
+    color: white;
+    border-color: #777;
+  }
+
+  button.send {
     padding: 12px 20px;
-    border-radius: 10px;
     background: #0A7A42;
     color: white;
+    border-radius: 10px;
     cursor: pointer;
     border: none;
   }
 
-  #voiceBtn {
-    background: #FFD000;
-    font-size: 20px;
-  }
 </style>
 </head>
 
 <body>
 
-<div class="header">المدرب الرقمي – نسخة صوتية</div>
+<div class="header">المدرب الرقمي – أكاديمية المتدرب</div>
+
+<!-- الأزرار العلوية -->
+<div id="floating-controls">
+  <button class="round-btn" onclick="toggleDark()">🌙</button>
+  <button class="round-btn mute-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
+  <button class="round-btn" id="voiceBtn" onclick="startVoice()">🎤</button>
+</div>
 
 <div id="chat-box">
-  <div class="bot-msg msg">مرحباً! يمكنك التحدث الآن باستخدام المايك 🎤</div>
+  <div class="bot-msg msg">مرحباً! كيف أستطيع مساعدتك في البرمجة أو مايكروسوفت أو الفوتوشوب؟</div>
 </div>
 
 <div class="controls">
-  <button id="voiceBtn" onclick="startVoice()">🎤</button>
-  <input id="userInput" placeholder="اكتب رسالتك هنا">
-  <button onclick="sendMessage()">إرسال</button>
+  <input id="userInput" placeholder="اكتب رسالتك هنا… ثم Enter">
+  <button class="send" onclick="sendMessage()">إرسال</button>
 </div>
 
 <script>
-// ============= المايك =============
+/* ========================= */
+/*   كتم/تشغيل صوت الردود     */
+/* ========================= */
+let soundEnabled = true;
+
+function toggleMute() {
+  soundEnabled = !soundEnabled;
+  document.getElementById("muteBtn").textContent = soundEnabled ? "🔊" : "🔇";
+
+  if (!soundEnabled) window.speechSynthesis.cancel();
+}
+
+function speak(text) {
+  if (!soundEnabled) return;
+  let msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "ar";
+  window.speechSynthesis.speak(msg);
+}
+
+/* ========================= */
+/*     الوضع الليلي          */
+/* ========================= */
+function toggleDark() {
+  document.body.classList.toggle("dark");
+}
+
+/* ========================= */
+/*     إدخال بالـ Enter       */
+/* ========================= */
+document.getElementById("userInput").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
+
+/* ========================= */
+/*      إرسال الرسالة         */
+/* ========================= */
+async function sendMessage() {
+  const input = document.getElementById("userInput");
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  addMessage(msg, "user");
+  input.value = "";
+
+  const payload =
+`أنت مساعد تعليمي متخصص في البرمجة، مايكروسوفت أوفيس، الفوتوشوب.
+قواعد الرد:
+- لا تزيد عن 10 كلمات.
+- بدون ترحيب.
+- أسلوب مختصر وواضح يشبه أكاديمية المتدرب.
+- إن كان السؤال خارج التخصص: "أساعد في البرمجة ومايكروسوفت والفوتوشوب فقط."
+
+السؤال: ${msg}`;
+
+  try {
+    const response = await fetch("https://deepseek-server-ktuu.onrender.com/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message: payload})
+    });
+
+    const data = await response.json();
+    const reply = data.reply || "تعذّر الحصول على الرد.";
+
+    addMessage(reply, "bot");
+    speak(reply);
+
+  } catch {
+    addMessage("تعذر الاتصال بالخادم", "bot");
+  }
+}
+
+function addMessage(text, type) {
+  const box = document.getElementById("chat-box");
+  const div = document.createElement("div");
+  div.className = type === "user" ? "msg user-msg" : "msg bot-msg";
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ========================= */
+/*      تسجيل الصوت           */
+/* ========================= */
 let recognition;
 let isListening = false;
 let silenceTimer;
 
 function startVoice() {
-  // إيقاف مؤقت
   if (isListening) { stopVoice(); return; }
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -152,31 +299,10 @@ function resetSilenceTimer() {
 function stopVoice() {
   if (!isListening) return;
   isListening = false;
+
   try { recognition.stop(); } catch {}
+
   document.getElementById("voiceBtn").style.background = "#FFD000";
-}
-
-// =============== الإرسال ================
-async function sendMessage() {
-  const input = document.getElementById("userInput");
-  const msg = input.value.trim();
-  if (!msg) return;
-
-  addMessage(msg, "user");
-  input.value = "";
-
-  const botReply = "هذا مثال لرد قصير من المدرب الرقمي.";
-
-  addMessage(botReply, "bot");
-}
-
-function addMessage(text, type) {
-  const box = document.getElementById("chat-box");
-  const div = document.createElement("div");
-  div.className = type === "user" ? "msg user-msg" : "msg bot-msg";
-  div.textContent = text;
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
 }
 </script>
 
