@@ -2,91 +2,136 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>المدرب الرقمي</title>
+<title>المدرب الرقمي – أكاديمية المتدرب</title>
 
 <style>
   body {
-    font-family: Arial, sans-serif;
-    background: #f4fdf7;
-    padding: 20px;
-    direction: rtl;
+    font-family: "Tajawal", Arial, sans-serif;
+    background: #F6F9F7;
+    margin: 0;
+    padding: 0;
     text-align: right;
   }
 
+  /* شريط العنوان */
+  .header {
+    background: #0A7A42;
+    color: white;
+    text-align: center;
+    padding: 20px 10px;
+    font-size: 26px;
+    font-weight: bold;
+  }
+
+  .sub-title {
+    text-align: center;
+    color: #0A7A42;
+    margin-top: 10px;
+    font-size: 19px;
+    margin-bottom: 10px;
+  }
+
+  /* صندوق الدردشة */
   #chat-box {
-    width: 100%;
-    height: 450px;
-    border: 1px solid #ccc;
+    width: 80%;
+    margin: auto;
     background: white;
-    padding: 10px;
-    border-radius: 10px;
+    border-radius: 12px;
+    padding: 15px;
+    height: 460px;
     overflow-y: auto;
+    border: 2px solid #CFF5DD;
   }
 
-  .user {
-    background:#d4f8d4;
-    padding:10px;
-    border-radius:8px;
-    text-align:right;
-    margin: 8px 0;
+  .msg-user {
+    background: #CFF5DD;
+    padding: 12px;
+    border-radius: 12px;
+    margin: 10px 0;
+    text-align: right;
+    font-weight: 500;
   }
 
-  .bot {
-    background:#eef0ff;
-    padding:10px;
-    border-radius:8px;
-    margin: 8px 0;
+  .msg-bot {
+    background: #EDEDED;
+    padding: 12px;
+    border-radius: 12px;
+    margin: 10px 0;
+    text-align: right;
+  }
+
+  /* صندوق الإدخال */
+  .input-area {
+    width: 80%;
+    margin: 15px auto;
+    display: flex;
+    gap: 10px;
+  }
+
+  input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #aaa;
+    font-size: 15px;
   }
 
   button {
+    padding: 12px 20px;
     background: #0A7A42;
     color: white;
     border: none;
-    padding: 10px 25px;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+  }
+
+  button:hover {
+    background: #066534;
   }
 </style>
 
 </head>
 <body>
 
-<h2 style="text-align:center;color:#0A7A42;">المدرب الرقمي – محادثة تفاعلية</h2>
+<div class="header">أكاديمية المتدرب</div>
+<div class="sub-title">المدرب الرقمي – محادثة تفاعلية</div>
 
 <div id="chat-box">
-  <p class="bot">مرحباً! كيف يمكنني مساعدتك اليوم؟</p>
+  <div class="msg-bot">مرحباً بك في المدرب الرقمي! كيف يمكنني مساعدتك اليوم؟</div>
 </div>
 
-<div style="margin-top:15px; display:flex; gap:10px;">
-  <input id="userInput" type="text" placeholder="اكتب رسالتك..." 
-         style="flex:1; padding:10px; border-radius:8px; border:1px solid #aaa;">
+<div class="input-area">
+  <input id="userInput" type="text" placeholder="اكتب رسالتك هنا...">
   <button onclick="sendMessage()">إرسال</button>
 </div>
 
 <script>
 async function sendMessage() {
   const input = document.getElementById("userInput");
-  const message = input.value.trim();
-  if (!message) return;
+  const msg = input.value.trim();
+  if (!msg) return;
 
   const chatBox = document.getElementById("chat-box");
 
-  chatBox.innerHTML += `<p class="user">${message}</p>`;
+  // رسالة المستخدم
+  chatBox.innerHTML += `<div class='msg-user'>${msg}</div>`;
   input.value = "";
 
   try {
     const response = await fetch("https://deepseek-server-ktuu.onrender.com/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ message: msg })
     });
 
     const data = await response.json();
 
-    chatBox.innerHTML += `<p class="bot">${data.reply || "حدث خطأ أثناء المعالجة"}</p>`;
+    chatBox.innerHTML += `<div class='msg-bot'>${data.reply || "حدث خطأ أثناء المعالجة"}</div>`;
 
-  } catch (err) {
-    chatBox.innerHTML += `<p class="bot" style="color:red;">🚫 تعذر الاتصال بالخادم</p>`;
+  } catch (e) {
+    chatBox.innerHTML += `<div class='msg-bot' style="color:red;">🚫 تعذر الاتصال بالخادم</div>`;
   }
 
   chatBox.scrollTop = chatBox.scrollHeight;
